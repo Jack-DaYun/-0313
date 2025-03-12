@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能雙向翻譯器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white shadow-lg rounded-xl p-8 max-w-lg w-full text-center">
+        <h1 class="text-2xl font-bold mb-4">🌍 智能雙向翻譯器 🌍</h1>
+        <p class="text-gray-600 mb-4">輸入中文轉英文，或輸入其他語言轉中文！</p>
+        
+        <textarea id="inputText" class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+            rows="4" placeholder="輸入文字..."></textarea>
+        
+        <div class="mt-4 text-left">
+            <label class="font-semibold text-gray-700">翻譯結果：</label>
+            <div id="outputText" class="w-full p-3 mt-2 bg-gray-100 border rounded-md min-h-[80px]"></div>
+        </div>
+    </div>
+
+    <script>
+        async function detectLanguage(text) {
+            const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|en`);
+            const data = await response.json();
+            return data.matches[0]?.detectedSourceLanguage || 'zh';
+        }
+
+        async function translateText(text) {
+            if (!text.trim()) {
+                document.getElementById('outputText').innerText = '';
+                return;
+            }
+            
+            const detectedLang = await detectLanguage(text);
+            const targetLang = detectedLang === 'zh' ? 'en' : 'zh';
+            
+            const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${detectedLang}|${targetLang}`);
+            const data = await response.json();
+            
+            document.getElementById('outputText').innerText = data.responseData.translatedText;
+        }
+
+        document.getElementById('inputText').addEventListener('input', (e) => {
+            translateText(e.target.value);
+        });
+    </script>
+</body>
+</html>
